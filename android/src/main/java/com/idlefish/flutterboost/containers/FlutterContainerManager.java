@@ -100,7 +100,9 @@ public class FlutterContainerManager {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("activeContainers=" + activeContainers.size() + ", [");
-        activeContainers.forEach((value) -> sb.append(value.getUrl() + ','));
+        for (FlutterViewContainer activeContainer : activeContainers) {
+            sb.append(activeContainer.getUrl() + ',');
+        }
         sb.append("]");
         return sb.toString();
     }
