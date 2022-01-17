@@ -9,16 +9,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+
 import com.idlefish.flutterboost.Assert;
 import com.idlefish.flutterboost.FlutterBoost;
 import com.idlefish.flutterboost.FlutterBoostUtils;
 import com.idlefish.flutterboost.Messages;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import io.flutter.Log;
+import io.flutter.embedding.android.ExclusiveAppComponent;
+import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.android.FlutterFragment;
 import io.flutter.embedding.android.FlutterTextureView;
 import io.flutter.embedding.android.FlutterView;
@@ -304,7 +309,28 @@ public class FlutterBoostFragment extends FlutterFragment implements FlutterView
     private void performAttach() {
         if (!isAttached) {
             // Attach plugins to the activity.
-            getFlutterEngine().getActivityControlSurface().attachToActivity(getActivity(), getLifecycle());
+            WeakReference<FlutterFragment> weakRefThis = new WeakReference<>(this);
+            getFlutterEngine().getActivityControlSurface().attachToActivity(
+                    new ExclusiveAppComponent<Activity>() {
+                        @Override
+                        public void detachFromFlutterEngine() {
+                            FlutterFragment weakThis = weakRefThis.get();
+                            if (weakThis != null) {
+                                weakThis.detachFromFlutterEngine();
+                            }
+                        }
+
+                        @NonNull
+                        @Override
+                        public Activity getAppComponent() {
+                            FlutterFragment weakThis = weakRefThis.get();
+                            assert weakThis != null;
+                            assert weakThis.getActivity() != null;
+                            return weakThis.getActivity();
+                        }
+                    },
+                    getLifecycle()
+            );
 
             if (platformPlugin == null) {
                 platformPlugin = new PlatformPlugin(getActivity(), getFlutterEngine().getPlatformChannel());

@@ -195,6 +195,11 @@ public class LifecycleView extends FrameLayout implements LifecycleOwner, Flutte
     return false;
   }
 
+  @Override
+  public void updateSystemUiOverlays() {
+    // luizssb: what to do?
+  }
+
   public void onFlutterSurfaceViewCreated(@NonNull FlutterSurfaceView flutterSurfaceView) {
     // Hook for subclasses.
   }

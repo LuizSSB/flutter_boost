@@ -7,18 +7,23 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.idlefish.flutterboost.Assert;
 import com.idlefish.flutterboost.FlutterBoost;
 import com.idlefish.flutterboost.FlutterBoostUtils;
 import com.idlefish.flutterboost.Messages;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import io.flutter.embedding.android.ExclusiveAppComponent;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.android.FlutterActivityLaunchConfigs.BackgroundMode;
+import io.flutter.embedding.android.FlutterFragment;
 import io.flutter.embedding.android.FlutterTextureView;
 import io.flutter.embedding.android.FlutterView;
 import io.flutter.embedding.android.RenderMode;
@@ -152,7 +157,27 @@ public class FlutterBoostActivity extends FlutterActivity implements FlutterView
     private void performAttach() {
         if (!isAttached) {
             // Attach plugins to the activity.
-            getFlutterEngine().getActivityControlSurface().attachToActivity(getActivity(), getLifecycle());
+            WeakReference<FlutterActivity> weakRefThis = new WeakReference<>(this);
+            getFlutterEngine().getActivityControlSurface().attachToActivity(
+                    new ExclusiveAppComponent<Activity>() {
+                        @Override
+                        public void detachFromFlutterEngine() {
+                            FlutterActivity weakThis = weakRefThis.get();
+                            if (weakThis != null) {
+                                weakThis.detachFromFlutterEngine();
+                            }
+                        }
+
+                        @NonNull
+                        @Override
+                        public Activity getAppComponent() {
+                            FlutterActivity weakThis = weakRefThis.get();
+                            assert weakThis != null;
+                            return weakThis.getActivity();
+                        }
+                    },
+                    getLifecycle()
+            );
 
             if (platformPlugin == null) {
                 platformPlugin = new PlatformPlugin(getActivity(), getFlutterEngine().getPlatformChannel());
