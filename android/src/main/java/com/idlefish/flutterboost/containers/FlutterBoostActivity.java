@@ -279,11 +279,17 @@ public class FlutterBoostActivity extends FlutterActivity implements FlutterView
         if (DEBUG) Log.d(TAG, "#onBackPressed: " + this);
     }
 
-    @Override
-    public RenderMode getRenderMode() {
-        // Default to |FlutterTextureView|.
-        return RenderMode.texture;
-    }
+    // luizssb: I can not figure exactly why, but, left as it was, this override for the method
+    // caused a small delay before display the content of the Flutter when activity, requiring the
+    // use of a Flutter splash screen to hide the sudden appearance of the page. The default
+    // implementation in `FlutterActivity` prevents this problem, at the cost of messing up the
+    // transition animations when a Flutter page requires the presentation of another Flutter page
+    // with `withContainer: false`.
+//    @Override
+//    public RenderMode getRenderMode() {
+//        // Default to |FlutterTextureView|.
+//        return RenderMode.texture;
+//    }
 
     @Override
     public Activity getContextActivity() {
